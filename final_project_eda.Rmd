@@ -1,0 +1,207 @@
+---
+title: "final_project"
+author: "Kaitlin Swinnerton"
+date: "11/25/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+# load packages 
+library(foreign)
+library(data.table)
+library(knitr)
+
+# add more packages
+library(sandwich)
+library(lmtest)
+library(stargazer)
+library(randomizr)
+
+# more more more
+library(car)
+```
+
+Load data
+
+```{r}
+d <- fread("data/data_final.csv")
+d = data.table(d)
+head(d)
+```
+Data description:
+  Baseline affect measures from the DASS-21: 'depression_0', 'anxiety_0', 'stress_0'
+    https://www.psytoolkit.org/survey-library/depression-anxiety-stress-dass.html
+  
+  Stress measures from the Perceived Stress Scale: 'pss_score_0', 'pss_score_1', 'pss_score_2'
+    https://www.psytoolkit.org/survey-library/stress-pss.html
+
+  Mental Rotation Task: at 0, 1, 2 weeks
+    https://www.psytoolkit.org/experiment-library/mentalrotation.html
+    'MR_reaction_times' : trial specific reaction time - time taken to answer question
+    'MR_correct' : trial specific accuracy
+    'MR_mean_reaction_time' : average time spent on question
+    'MR_percent_correct' : accuracy for whole task
+  
+  Go/No-go Task: at 0, 1, 2 weeks
+    https://www.psytoolkit.org/experiment-library/go-no-go.html
+    'gng_commission_errors_0': number of commision errors (trials where space bar was hit when no-go was shown)
+    'gng_mean_hit_rxn_times_0': average reaction time for 'hit' trials - (trials where space bar was hit when go was shown)
+     
+  Time on Survey: at 0,1,2 weeks
+    'TIME_start_': tiem started survey
+    'TIME_end_', : time finished survey
+    'TIME_total_', : total time on survey
+    
+  Self Report Activity Measures at 1 and 2 weeks 
+    'activity_count_1': number of times assigned activity was completed in last week
+    'start_day_1': only taken on week 1, whether participants completed first task on Monday, Tuesday, or Other
+    'TOA_mon_', 'TOA_tue_', 'TOA_wed_', 'TOA_thurs_', 'TOA_fri_1': time of day avticity was completed (or Not completed)
+       
+  Indicator variables for completing surveys
+    'completed_intake', 'completed_w1', 'completed_w2',
+    'total_surveys_completed': total number of surveys completed
+
+
+```{r}
+colnames(d)
+```
+
+Randomization check
+```{r}
+
+d[Group == 0 | Group == 1, .("mean age" = mean(age, na.rm=TRUE), "percent female" = mean(female, na.rm=TRUE), 
+      "meditated before" = mean(meditated_before, na.rm=TRUE),
+      "baseline depression" = mean(depression_0, na.rm=TRUE), 
+      "baseline_stress" = mean(stress_0, na.rm=TRUE),  "baseline_anxiety" = mean(anxiety_0, na.rm=TRUE)),
+  by = Group]
+```
+
+
+```{r}
+tail(d)
+```
+
+
+
+```{r}
+
+calc_slopes = function(var, slope_list){
+  for (i in c(1:127)){
+    X = c(0,1,2)
+    y = c( d[[paste(var, '_0', sep='')]][i], d[[paste(var , '_1', sep='')]][i],
+           d[[paste(var , '_2', sep='')]][i])
+    if (is.na(mean(y))){
+      slope_list[i] = NA
+    }
+    else{
+    model = lm(y~X )
+    slope_list[i] = coefficients(model)[2]
+    }
+  }
+  return (slope_list)
+}
+
+empty_slopes = c(rep(NA, 127))
+
+d[, pss_slopes := calc_slopes('pss_score', empty_slopes), ]
+d[, mr_accuracy_slopes := calc_slopes('MR_percent_correct', empty_slopes), ]
+d[, mr_rxn_slopes_slopes := calc_slopes("MR_mean_reaction_time", empty_slopes), ]
+d[, gng_commission_errors_slopes := calc_slopes('gng_commission_errors', empty_slopes), ]
+d[, gng_rxn_slopes := calc_slopes("gng_mean_hit_rxn_times", empty_slopes), ]
+
+d[, hist(pss_slopes), ]
+d[, hist(mr_accuracy_slopes), ]
+d[, hist(mr_rxn_slopes_slopes), ]
+d[, hist(gng_commission_errors_slopes), ]
+d[, hist(gng_rxn_slopes), ]
+
+
+```
+
+```{r}
+p1 <- hist(d[Group == 0, pss_slopes], )                     
+p2 <- hist(d[Group == 1, pss_slopes])                      
+plot( p2, col=rgb(0,0,1,1/4)  , main = "Histogram of Change in Perceived Stress", xlab = "Change in Perceived Stress") 
+plot( p1, col=rgb(1,0,0,1/4), add=T)
+legend("topright", c("Meditation", "Puzzles"), col=c(rgb(0,0,1,1/4), col=rgb(1,0,0,1/4)), lwd=10)
+
+```
+
+```{r}
+p1 <- hist(d[Group == 0, mr_accuracy_slopes], )                     
+p2 <- hist(d[Group == 1, mr_accuracy_slopes])                      
+plot( p2, col=rgb(0,0,1,1/4)  , main = "Histogram of Change in Mental Rotation Accuracy", xlab = "Change in Mental Rotation Accuracy") 
+plot( p1, col=rgb(1,0,0,1/4), add=T)
+legend("topright", c("Meditation", "Puzzles"), col=c(rgb(0,0,1,1/4), col=rgb(1,0,0,1/4)), lwd=10)
+
+```
+```{r}
+p1 <- hist(d[Group == 0, mr_rxn_slopes_slopes], )                     
+p2 <- hist(d[Group == 1, mr_rxn_slopes_slopes])                      
+plot( p2, col=rgb(0,0,1,1/4)  , main = "Histogram of Change in Mental Rotation Reaction Time", xlab = "Change in Mental Rotation Reaction Time") 
+plot( p1, col=rgb(1,0,0,1/4), add=T)
+legend("topright", c("Meditation", "Puzzles"), col=c(rgb(0,0,1,1/4), col=rgb(1,0,0,1/4)), lwd=10)
+
+```
+```{r}
+p1 <- hist(d[Group == 0, gng_commission_errors_slopes], )                     
+p2 <- hist(d[Group == 1, gng_commission_errors_slopes])                      
+plot( p2, col=rgb(0,0,1,1/4)  , main = "Histogram of Change in Go/No-go Commission Errors", xlab = "Change in Go/No-go Commission Errors") 
+plot( p1, col=rgb(1,0,0,1/4), add=T)
+legend("topright", c("Meditation", "Puzzles"), col=c(rgb(0,0,1,1/4), col=rgb(1,0,0,1/4)), lwd=10)
+
+```
+
+```{r}
+p1 <- hist(d[Group == 0, gng_rxn_slopes], )                     
+p2 <- hist(d[Group == 1, gng_rxn_slopes], )                      
+plot( p2, col=rgb(0,0,1,1/4)  , main = "Histogram of Change in Go/No-go Reaction Time", xlab = "Change in Go/No-go Reaction Time") 
+plot( p1, col=rgb(1,0,0,1/4), add=T)
+legend("topright", c("Meditation", "Puzzles"), col=c(rgb(0,0,1,1/4), col=rgb(1,0,0,1/4)), lwd=10)
+
+```
+
+
+```{r}
+scatterplotMatrix(d[,c("pss_score_0","stress_0", "anxiety_0", "depression_0"),],
+                  diagonal=list(method ="histogram", breaks="FD"), 
+                  main = "Baseline Affect Measures")
+```
+```{r}
+scatterplotMatrix(d[,c("stress_0", "pss_score_0", "pss_score_1", "pss_score_2", "pss_slopes"),],
+                  diagonal=list(method ="histogram", breaks="FD"), 
+                  main = "Stress Measures")
+```
+```{r}
+scatterplotMatrix(d[ Group == 0, c("stress_0", "pss_score_0", "pss_score_1", "pss_score_2", "pss_slopes"), ],
+                  diagonal=list(method ="histogram", breaks="FD"), 
+                  main = "Stress Measures")
+```
+```{r}
+scatterplotMatrix(d[ Group == 1, c("stress_0", "pss_score_0", "pss_score_1", "pss_score_2", "pss_slopes"), ],
+                  diagonal=list(method ="histogram", breaks="FD"), 
+                  main = "Stress Measures")
+```
+
+
+```{r}
+d[ , .("completed intake" = mean(completed_intake), "complted week 1" = mean(completed_w1), 
+       "complted week 2" = mean(completed_w2), "average completed surveys" = mean(total_surveys_completed)), Group]
+```
+
+```{r}
+d[ , .("completed intake" = sum(completed_intake), "complted week 1" = sum(completed_w1), 
+       "complted week 2" = sum(completed_w2), "average completed surveys" = mean(total_surveys_completed)), Group]
+```
+
+
+```{r}
+d[ total_surveys_completed == 3, .N, Group]
+```
+
+
+
+
