@@ -1,0 +1,125 @@
+l: email
+t: textline
+q: Please enter your email
+- {require} email
+
+l: age
+t: textline
+q: How old are you?
+- {min=18,max=100} Enter your age
+
+l: gender
+t: radio
+q: Gender
+- Man
+- Woman
+- Non-Binary
+- Prefer not to say
+- Other
+
+l: meditated_before
+t: radio
+q: Have you meditated before?
+- Yes
+- No
+
+scale: frequency
+- {score=0} never
+- {score=1} almost never
+- {score=2} sometimes
+- {score=3} fairly often
+- {score=4} very often
+
+l: pss
+t: scale frequency
+o: width 50%
+q: The questions in this scale ask you about your feelings and thoughts during the last week.<br>
+In each case, you will be asked <i>how often</i> you felt or thought a certain way.<br>
+Although some of the questions are similar, there are differences
+between them and you should treat each one as a separate question.<br>
+The best approach is answer each question fairly quickly.<br>
+That is, don't try to count up the number of times you felt a particular way,<br>
+but rather indicate the alternative that seems like a reasonable estimate.<br>
+- In the last week, how often have you been upset because of something that happened unexpectedly?
+- In the last week, how often have you felt that you were unable to control the important things in your life?
+- In the last week, how often have you felt nervous and "stressed"?
+- {reverse} In the last week, how often have you dealt successfully with irritating life hassles?
+- {reverse} In the last week, how often have you felt that you were effectively coping with important changes that were occurring in your life?
+- {reverse} In the last week, how often have you felt confident about your ability to handle your personal problems?
+- {reverse} In the last week, how often have you felt that things were going your way?
+- In the last week, how often have you found that you could not cope with all the things that you had to do?
+- {reverse} In the last week, how often have you been able to control irritations in your life?
+- {reverse} In the last week, how often have you felt that you were on top of things?
+- In the last week, how often have you been angered because of things that happened that were outside of your control?
+- In the last week, how often have you found yourself thinking about things that you have to accomplish?
+- {reverse} In the last week, how often have you been able to control the way you spend your time?
+- In the last week, how often have you felt difficulties were piling up so high that you could not overcome them?
+
+l: score
+t: set
+- sum $pss
+
+scale: frequency2
+- {score=0} Never
+- {score=1} Sometimes
+- {score=2} Often
+- {score=3} Almost always
+
+l: dass21
+t: scale frequency2
+o: width 60%
+q: Please read each statement and indicate how much the statement applied to you
+<b>over the past week</b>.<br>
+There are no right or wrong answers.<br>
+Do not spend too much time on any statement.<br>
+The rating scale is as follows:
+<ul>
+<li>Did not apply to me at all - NEVER
+<li>Applied to me to some degree, or some of the time - SOMETIMES
+<li>Applied to me to a considerable degree, or a good part of time - OFTEN
+<li>Applied to me very much, or most of the time - ALMOST ALWAYS
+</ul><br>
+- I found it hard to wind down
+- I was aware of dryness of my mouth
+- I couldn’t seem to experience any positive feeling at all
+- I experienced breathing difficulty (for example, excessively rapid breathing, breathlessness in the absence of physical exertion)
+- I found it difficult to work up the initiative to do things
+- I tended to over-react to situations
+- I experienced trembling (for example, in the hands)
+- I felt that I was using a lot of nervous energy
+- I was worried about situations in which I might panic and make a fool of myself
+- I felt that I had nothing to look forward to
+- I found myself getting agitated
+- I found it difficult to relax
+- I felt down-hearted and blue
+- I was intolerant of anything that kept me from getting on with what I was doing
+- I felt I was close to panic
+- I was unable to become enthusiastic about anything
+- I felt I wasn’t worth much as a person
+- I felt that I was rather touchy
+- I was aware of the action of my heart in the absence of physicalexertion (for example, sense of heart rate increase, heart missing a beat)
+- I felt scared without any good reason
+- I felt that life was meaningless
+
+l: depression
+t: set
+- calc ( $dass21.3 + $dass21.5 + $dass21.10 + $dass21.13 + $dass21.16 + $dass21.17 + $dass21.21  ) * 2
+
+l: anxiety
+t: set
+- calc ( $dass21.2 + $dass21.4 + $dass21.7 + $dass21.9 + $dass21.15 + $dass21.19 + $dass21.20 ) * 2
+
+l: stress
+t: set
+- calc ( $dass21.1 + $dass21.6 + $dass21.8 + $dass21.11 + $dass21.12 + $dass21.14 + $dass21.18  ) * 2
+
+
+l: mental_rotation
+t: experiment
+q: Please do the following activity
+- mental_rotation
+
+l: stop_signal
+t: experiment
+q: Please do the following activity
+- go_nogo

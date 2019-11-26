@@ -1,0 +1,15 @@
+training 1 0 2005 1
+training 2 0 1446 1
+training 3 1 2140 1
+training 4 0 1876 1
+training 5 1 1736 1
+test 6 0 6399 2
+test 7 0 15750 2
+test 8 0 4592 1
+test 9 1 7523 1
+test 10 1 4233 1
+test 11 1 7788 1
+test 12 1 11067 1
+test 13 0 5446 1
+test 14 1 7291 1
+test 15 0 6149 1

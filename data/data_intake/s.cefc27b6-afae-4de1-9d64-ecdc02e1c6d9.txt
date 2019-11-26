@@ -1,0 +1,9 @@
+version: 2.6.0
+server-time: 2019-11-11-15-56
+user_agent: mozilla/5.0 (macintosh; intel mac os x 10_15_0) applewebkit/537.36 (khtml, like gecko) chrome/78.0.3904.97 safari/537.36
+screen_width: 1440
+screen_height: 900
+html_width: 1440
+html_height: 683
+user_time: Mon, 11 Nov 2019 14:55:59 GMT
+T: 10330
